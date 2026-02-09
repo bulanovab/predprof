@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Анализ поступления</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Анализ поступления</div>
+    <form class="controls" method="get" action="/">
+      <label>
+        День
+        <select name="day">
+          {% for d in days %}
+          <option value="{{ d }}" {% if d == selected_day %}selected{% endif %}>{{ d }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Программа
+        <select name="program">
+          {% for p in programs %}
+          <option value="{{ p }}" {% if p == selected_program %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Загрузить</button>
+    </form>
+  </header>
+
+  <main class="container">
+    {% if message %}
+      <div class="message">{{ message }}</div>
+    {% else %}
+    <nav class="tabs">
+      <button class="tab active" data-tab="programs">По программам</button>
+      <button class="tab" data-tab="unified">Единый список</button>
+      <button class="tab" data-tab="cutoffs">Проходные</button>
+    </nav>
+
+    <section class="tab-panel active" id="tab-programs">
+      <div class="filters">
+        <input id="searchInput" type="text" placeholder="Поиск по ID абитуриента" />
+        <select id="consentFilter">
+          <option value="all">Согласие: все</option>
+          <option value="true">Согласие: да</option>
+          <option value="false">Согласие: нет</option>
+        </select>
+        <select id="priorityFilter">
+          <option value="all">Приоритет: все</option>
+          <option value="1">Приоритет 1</option>
+          <option value="2">Приоритет 2</option>
+          <option value="3">Приоритет 3</option>
+          <option value="4">Приоритет 4</option>
+        </select>
+      </div>
+      <table id="programTable">
+        <thead>
+          <tr>
+            <th data-sort="applicant_id">ID абитуриента</th>
+            <th data-sort="consent">Согласие</th>
+            <th data-sort="priority">Приоритет</th>
+            <th data-sort="physics_ikt">Физика/ИКТ</th>
+            <th data-sort="russian">Русский</th>
+            <th data-sort="math">Математика</th>
+            <th data-sort="achievements">Достижения</th>
+            <th data-sort="total">Сумма</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in program_rows %}
+          <tr data-applicant="{{ r.applicant_id }}" data-consent="{{ 'true' if r.consent else 'false' }}" data-priority="{{ r.priority }}">
+            <td>{{ r.applicant_id }}</td>
+            <td>{{ 'да' if r.consent else 'нет' }}</td>
+            <td>{{ r.priority }}</td>
+            <td>{{ r.physics_ikt }}</td>
+            <td>{{ r.russian }}</td>
+            <td>{{ r.math }}</td>
+            <td>{{ r.achievements }}</td>
+            <td>{{ r.total }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="pagination">
+        {% if page > 1 %}
+          <a href="/?day={{ selected_day }}&program={{ selected_program }}&page={{ page - 1 }}">Назад</a>
+        {% else %}
+          <span class="disabled">Назад</span>
+        {% endif %}
+        <span>Страница {{ page }} из {{ page_count }} (всего {{ total_count }})</span>
+        {% if page < page_count %}
+          <a href="/?day={{ selected_day }}&program={{ selected_program }}&page={{ page + 1 }}">Вперёд</a>
+        {% else %}
+          <span class="disabled">Вперёд</span>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="tab-panel" id="tab-unified">
+      <table>
+        <thead>
+          <tr>
+            <th>ID абитуриента</th>
+            <th>Цепочка приоритетов</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in unified_rows %}
+          <tr>
+            <td>{{ r.applicant_id }}</td>
+            <td>{{ r.chain }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="tab-panel" id="tab-cutoffs">
+      <table>
+        <thead>
+          <tr>
+            <th>Программа</th>
+            <th>Места</th>
+            <th>Согласия</th>
+            <th>Проходной</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in cutoff_rows %}
+          <tr>
+            <td>{{ r.program }}</td>
+            <td>{{ r.seats }}</td>
+            <td>{{ r.consent }}</td>
+            <td>{{ r.cutoff }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+    {% endif %}
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
